@@ -181,7 +181,7 @@ class _MoviePageState extends State<MoviePage> {
             ),
             const SizedBox(width: 8),
             const Text(
-              "My Movie List",
+              "NigFlix",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
