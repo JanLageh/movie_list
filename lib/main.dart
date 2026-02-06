@@ -30,22 +30,21 @@ class _MoviePageState extends State<MoviePage> {
   final TextEditingController lengthController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
 
-String selectedGenre = "Action";
+  String selectedGenre = "Action";
 
-final List<String> genres = [
-  "Action",
-  "Comedy",
-  "Drama",
-  "Horror",
-  "Sci-Fi",
-  "Romance",
-];
+  final List<String> genres = [
+    "Action",
+    "Comedy",
+    "Drama",
+    "Horror",
+    "Sci-Fi",
+    "Romance",
+  ];
   Uint8List? selectedImage;
 
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final XFile? image =
-        await picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
       final bytes = await image.readAsBytes();
@@ -56,8 +55,9 @@ final List<String> genres = [
   }
 
   void addMovie() {
-    if (titleController.text.isEmpty ||
-        lengthController.text.isEmpty) return;
+    if (titleController.text.isEmpty || lengthController.text.isEmpty) {
+      return;
+    }
 
     setState(() {
       movies.add(
@@ -92,18 +92,14 @@ final List<String> genres = [
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(
-                labelText: "Movie Title",
-              ),
+              decoration: const InputDecoration(labelText: "Movie Title"),
             ),
             const SizedBox(height: 10),
 
             TextField(
               controller: lengthController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Length (minutes)",
-              ),
+              decoration: const InputDecoration(labelText: "Length (minutes)"),
             ),
 
             const SizedBox(height: 10),
@@ -112,10 +108,8 @@ final List<String> genres = [
               initialValue: selectedGenre,
               items: genres
                   .map(
-                    (genre) => DropdownMenuItem(
-                      value: genre,
-                      child: Text(genre),
-                    ),
+                    (genre) =>
+                        DropdownMenuItem(value: genre, child: Text(genre)),
                   )
                   .toList(),
               onChanged: (value) {
@@ -123,9 +117,7 @@ final List<String> genres = [
                   selectedGenre = value!;
                 });
               },
-              decoration: const InputDecoration(
-                labelText: "Genre",
-              ),
+              decoration: const InputDecoration(labelText: "Genre"),
             ),
             Row(
               children: [
@@ -144,17 +136,14 @@ final List<String> genres = [
               ],
             ),
             const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: addMovie,
-              child: const Text("Add Movie"),
-            ),
+            ElevatedButton(onPressed: addMovie, child: const Text("Add Movie")),
 
             const SizedBox(height: 20),
 
             Expanded(
               child: ListView.builder(
                 itemCount: movies.length,
-                itemBuilder: (context, index,) {
+                itemBuilder: (context, index) {
                   final movie = movies[index];
                   return Card(
                     child: ListTile(
@@ -179,8 +168,9 @@ final List<String> genres = [
             ),
           ],
         ),
-    ),
-  );}
+      ),
+    );
+  }
 }
 
 class Movie {
@@ -189,5 +179,10 @@ class Movie {
   String genre;
   Uint8List? thumbnail;
 
-  Movie({required this.title, this.length = 0, this.genre = "", this.thumbnail});
+  Movie({
+    required this.title,
+    this.length = 0,
+    this.genre = "",
+    this.thumbnail,
+  });
 }
