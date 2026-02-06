@@ -83,6 +83,7 @@ class _MoviePageState extends State<MoviePage> {
   final TextEditingController titleController = TextEditingController();
 
   String selectedGenre = "Action";
+  int? editingIndex;
 
   final List<String> genres = [
     "Action",
@@ -112,25 +113,52 @@ class _MoviePageState extends State<MoviePage> {
     }
 
     setState(() {
-      movies.add(
-        Movie(
-          title: titleController.text,
-          length: int.parse(lengthController.text),
-          genre: selectedGenre,
-          thumbnail: selectedImage,
-        ),
+      final updatedMovie = Movie(
+        title: titleController.text,
+        length: int.parse(lengthController.text),
+        genre: selectedGenre,
+        thumbnail: selectedImage,
       );
+
+      if (editingIndex != null) {
+        movies[editingIndex!] = updatedMovie;
+      } else {
+        movies.add(updatedMovie);
+      }
 
       titleController.clear();
       lengthController.clear();
       selectedImage = null;
       selectedGenre = genres.first;
+      editingIndex = null;
+    });
+  }
+
+  void selectMovie(int index) {
+    final movie = movies[index];
+    setState(() {
+      editingIndex = index;
+      titleController.text = movie.title;
+      lengthController.text = movie.length.toString();
+      selectedGenre = movie.genre;
+      selectedImage = movie.thumbnail;
     });
   }
 
   void deleteMovie(int index) {
     setState(() {
       movies.removeAt(index);
+      if (editingIndex != null) {
+        if (editingIndex == index) {
+          titleController.clear();
+          lengthController.clear();
+          selectedImage = null;
+          selectedGenre = genres.first;
+          editingIndex = null;
+        } else if (editingIndex! > index) {
+          editingIndex = editingIndex! - 1;
+        }
+      }
     });
   }
 
@@ -277,8 +305,10 @@ class _MoviePageState extends State<MoviePage> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: addMovie,
-                      icon: const Icon(Icons.add),
-                      label: const Text("ADD MOVIE"),
+                      icon: Icon(editingIndex == null ? Icons.add : Icons.save),
+                      label: Text(
+                        editingIndex == null ? "ADD MOVIE" : "SAVE CHANGES",
+                      ),
                     ),
                   ),
 
@@ -342,6 +372,7 @@ class _MoviePageState extends State<MoviePage> {
                         horizontal: 12,
                         vertical: 6,
                       ),
+                      onTap: () => selectMovie(index),
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: movie.thumbnail != null
