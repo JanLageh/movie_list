@@ -27,7 +27,19 @@ class MoviePage extends StatefulWidget {
 
 class _MoviePageState extends State<MoviePage> {
   final List<Movie> movies = [];
-  final TextEditingController controller = TextEditingController();
+  final TextEditingController lengthController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+
+String selectedGenre = "Action";
+
+final List<String> genres = [
+  "Action",
+  "Comedy",
+  "Drama",
+  "Horror",
+  "Sci-Fi",
+  "Romance",
+];
   Uint8List? selectedImage;
 
   Future<void> pickImage() async {
@@ -44,17 +56,23 @@ class _MoviePageState extends State<MoviePage> {
   }
 
   void addMovie() {
-    if (controller.text.isEmpty) return;
+    if (titleController.text.isEmpty ||
+        lengthController.text.isEmpty) return;
 
     setState(() {
       movies.add(
         Movie(
-          title: controller.text,
+          title: titleController.text,
+          length: int.parse(lengthController.text),
+          genre: selectedGenre,
           thumbnail: selectedImage,
         ),
       );
-      controller.clear();
+
+      titleController.clear();
+      lengthController.clear();
       selectedImage = null;
+      selectedGenre = genres.first;
     });
   }
 
@@ -73,13 +91,42 @@ class _MoviePageState extends State<MoviePage> {
         child: Column(
           children: [
             TextField(
-              controller: controller,
+              controller: titleController,
               decoration: const InputDecoration(
                 labelText: "Movie Title",
               ),
             ),
             const SizedBox(height: 10),
 
+            TextField(
+              controller: lengthController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Length (minutes)",
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            DropdownButtonFormField<String>(
+              initialValue: selectedGenre,
+              items: genres
+                  .map(
+                    (genre) => DropdownMenuItem(
+                      value: genre,
+                      child: Text(genre),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedGenre = value!;
+                });
+              },
+              decoration: const InputDecoration(
+                labelText: "Genre",
+              ),
+            ),
             Row(
               children: [
                 ElevatedButton(
@@ -96,7 +143,6 @@ class _MoviePageState extends State<MoviePage> {
                   ),
               ],
             ),
-
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: addMovie,
@@ -108,7 +154,7 @@ class _MoviePageState extends State<MoviePage> {
             Expanded(
               child: ListView.builder(
                 itemCount: movies.length,
-                itemBuilder: (context, index) {
+                itemBuilder: (context, index,) {
                   final movie = movies[index];
                   return Card(
                     child: ListTile(
@@ -121,6 +167,7 @@ class _MoviePageState extends State<MoviePage> {
                             )
                           : const Icon(Icons.movie, size: 40),
                       title: Text(movie.title),
+                      subtitle: Text("${movie.genre} • ${movie.length} min"),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () => deleteMovie(index),
@@ -132,14 +179,15 @@ class _MoviePageState extends State<MoviePage> {
             ),
           ],
         ),
-      ),
-    );
-  }
+    ),
+  );}
 }
 
 class Movie {
   String title;
+  int length;
+  String genre;
   Uint8List? thumbnail;
 
-  Movie({required this.title, this.thumbnail});
+  Movie({required this.title, this.length = 0, this.genre = "", this.thumbnail});
 }
