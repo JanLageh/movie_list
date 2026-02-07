@@ -156,6 +156,181 @@ class _MoviePageState extends State<MoviePage> {
     }
   }
 
+  void openCreateForm() {
+    setState(() {
+      titleController.clear();
+      lengthController.clear();
+      descriptionController.clear();
+      yearController.clear();
+      selectedImage = null;
+      selectedGenre = genres.first;
+      editingIndex = null;
+    });
+    showMovieForm();
+  }
+
+  void showMovieForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: netflixBlack,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: pickImage,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: netflixGrey,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: selectedImage != null
+                            ? netflixRed
+                            : Colors.grey.shade700,
+                        width: 2,
+                      ),
+                      boxShadow: selectedImage != null
+                          ? [
+                              BoxShadow(
+                                color: netflixRed.withAlpha(60),
+                                blurRadius: 12,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: selectedImage != null
+                        ? Image.memory(
+                            selectedImage!,
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                          )
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_photo_alternate_outlined,
+                                color: Colors.grey,
+                                size: 36,
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "Thumbnail",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: titleController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: "Movie Title",
+                    prefixIcon: Icon(Icons.movie_outlined, color: netflixRed),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: lengthController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: "Length (minutes)",
+                    prefixIcon: Icon(Icons.timer_outlined, color: netflixRed),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: yearController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: "Year",
+                    prefixIcon: Icon(Icons.event_outlined, color: netflixRed),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: descriptionController,
+                  maxLines: 2,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: "Description",
+                    prefixIcon: Icon(
+                      Icons.description_outlined,
+                      color: netflixRed,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  key: ValueKey(selectedGenre),
+                  initialValue: selectedGenre,
+                  dropdownColor: netflixGrey,
+                  style: const TextStyle(color: Colors.white),
+                  items: genres
+                      .map(
+                        (genre) =>
+                            DropdownMenuItem(value: genre, child: Text(genre)),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedGenre = value!;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: "Genre",
+                    prefixIcon: Icon(
+                      Icons.category_outlined,
+                      color: netflixRed,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      addMovie();
+                      Navigator.of(context).pop();
+                    },
+                    icon: Icon(editingIndex == null ? Icons.add : Icons.save),
+                    label: Text(
+                      editingIndex == null ? "ADD MOVIE" : "SAVE CHANGES",
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void addMovie() {
     if (titleController.text.isEmpty || lengthController.text.isEmpty) {
       return;
@@ -216,6 +391,7 @@ class _MoviePageState extends State<MoviePage> {
       selectedGenre = movie.genre;
       selectedImage = movie.thumbnail;
     });
+    showMovieForm();
   }
 
   void deleteMovie(int index) {
@@ -278,252 +454,173 @@ class _MoviePageState extends State<MoviePage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: openCreateForm,
+        backgroundColor: netflixRed,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: isSelecting
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 20),
-                                  child: CircularProgressIndicator(
-                                    color: netflixRed,
-                                  ),
-                                ),
-                              )
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Selected Movie",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  if (selectedIndex == null)
-                                    const Text(
-                                      "No movie selected",
-                                      style: TextStyle(color: Colors.grey),
-                                    )
-                                  else ...[
-                                    Text(
-                                      movies[selectedIndex!].title,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "Genre: ${movies[selectedIndex!].genre}",
-                                      style: TextStyle(
-                                        color: Colors.grey.shade400,
-                                      ),
-                                    ),
-                                    Text(
-                                      "Length: ${movies[selectedIndex!].length} min",
-                                      style: TextStyle(
-                                        color: Colors.grey.shade400,
-                                      ),
-                                    ),
-                                    Text(
-                                      "Year: ${movies[selectedIndex!].year}",
-                                      style: TextStyle(
-                                        color: Colors.grey.shade400,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      movies[selectedIndex!].description.isEmpty
-                                          ? "No description"
-                                          : movies[selectedIndex!].description,
-                                      style: TextStyle(
-                                        color: Colors.grey.shade300,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Column(
-                      children: [
-                        GestureDetector(
-                          onTap: pickImage,
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: netflixGrey,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: selectedImage != null
-                                    ? netflixRed
-                                    : Colors.grey.shade700,
-                                width: 2,
-                              ),
-                              boxShadow: selectedImage != null
-                                  ? [
-                                      BoxShadow(
-                                        color: netflixRed.withAlpha(60),
-                                        blurRadius: 12,
-                                        spreadRadius: 1,
-                                      ),
-                                    ]
-                                  : null,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: isSelecting
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: CircularProgressIndicator(color: netflixRed),
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Selected Movie",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            clipBehavior: Clip.antiAlias,
-                            child: selectedImage != null
-                                ? Image.memory(
-                                    selectedImage!,
-                                    width: 120,
-                                    height: 120,
-                                    fit: BoxFit.cover,
-                                  )
-                                : const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.add_photo_alternate_outlined,
-                                        color: Colors.grey,
-                                        size: 36,
-                                      ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        "Thumbnail",
-                                        style: TextStyle(
+                          ),
+                          const SizedBox(height: 12),
+                          if (selectedIndex == null)
+                            const Text(
+                              "No movie selected",
+                              style: TextStyle(color: Colors.grey),
+                            )
+                          else
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 90,
+                                  height: 130,
+                                  decoration: BoxDecoration(
+                                    color: netflixGrey,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child:
+                                      movies[selectedIndex!].thumbnail != null
+                                      ? Image.memory(
+                                          movies[selectedIndex!].thumbnail!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : const Icon(
+                                          Icons.movie,
                                           color: Colors.grey,
-                                          fontSize: 12,
+                                          size: 40,
+                                        ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        movies[selectedIndex!].title,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 6,
+                                        children: [
+                                          Chip(
+                                            label: Text(
+                                              movies[selectedIndex!].genre,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            backgroundColor: netflixGrey,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              side: BorderSide(
+                                                color: Colors.grey.shade700,
+                                              ),
+                                            ),
+                                          ),
+                                          Chip(
+                                            label: Text(
+                                              "${movies[selectedIndex!].length} min",
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            backgroundColor: netflixGrey,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              side: BorderSide(
+                                                color: Colors.grey.shade700,
+                                              ),
+                                            ),
+                                          ),
+                                          Chip(
+                                            label: Text(
+                                              movies[selectedIndex!].year
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            backgroundColor: netflixGrey,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              side: BorderSide(
+                                                color: Colors.grey.shade700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        movies[selectedIndex!]
+                                                .description
+                                                .isEmpty
+                                            ? "No description"
+                                            : movies[selectedIndex!]
+                                                  .description,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade300,
                                         ),
                                       ),
                                     ],
                                   ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: titleController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            labelText: "Movie Title",
-                            prefixIcon: Icon(
-                              Icons.movie_outlined,
-                              color: netflixRed,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: lengthController,
-                          keyboardType: TextInputType.number,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            labelText: "Length (minutes)",
-                            prefixIcon: Icon(
-                              Icons.timer_outlined,
-                              color: netflixRed,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: yearController,
-                          keyboardType: TextInputType.number,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            labelText: "Year",
-                            prefixIcon: Icon(
-                              Icons.event_outlined,
-                              color: netflixRed,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          controller: descriptionController,
-                          maxLines: 2,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            labelText: "Description",
-                            prefixIcon: Icon(
-                              Icons.description_outlined,
-                              color: netflixRed,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        DropdownButtonFormField<String>(
-                          key: ValueKey(selectedGenre),
-                          initialValue: selectedGenre,
-                          dropdownColor: netflixGrey,
-                          style: const TextStyle(color: Colors.white),
-                          items: genres
-                              .map(
-                                (genre) => DropdownMenuItem(
-                                  value: genre,
-                                  child: Text(genre),
                                 ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedGenre = value!;
-                            });
-                          },
-                          decoration: const InputDecoration(
-                            labelText: "Genre",
-                            prefixIcon: Icon(
-                              Icons.category_outlined,
-                              color: netflixRed,
+                              ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: addMovie,
-                            icon: Icon(
-                              editingIndex == null ? Icons.add : Icons.save,
-                            ),
-                            label: Text(
-                              editingIndex == null
-                                  ? "ADD MOVIE"
-                                  : "SAVE CHANGES",
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "My List",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "My List",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+            const SizedBox(height: 8),
             Expanded(
               child: ListView.builder(
                 itemCount: movies.length,
